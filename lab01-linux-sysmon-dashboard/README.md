@@ -13,6 +13,8 @@ Built as **Lab 01** of my DevOps portfolio — demonstrating Python systems scri
 - Fires alerts when any metric crosses a configured threshold (with auto-clear when it recovers)
 - Exports all data to `reports/metrics.json` and `reports/metrics.csv` continuously
 - Runs as a `systemd` service with auto-restart on failure
+- Fires alerts when any metric crosses a configured threshold (with auto-clear when it recovers). You can customize alerts, for example set CPU or RAM thresholds so that if they exceed, for example, 60%, an alert is generated
+- Runs locally in real-time at http://127.0.0.1:5000/
 
 ---
 
@@ -22,6 +24,8 @@ Built as **Lab 01** of my DevOps portfolio — demonstrating Python systems scri
 ╔══════════════════════════════════════════════╗
 ║       linux-sysmon-dashboard  v1.0           ║
 ╚══════════════════════════════════════════════╝
+  By kt-it26
+
   Host : myserver    Time : 2026-05-09T14:32:01Z
 
   CPU  4p/8t  3600.0 MHz
@@ -83,6 +87,7 @@ Built as **Lab 01** of my DevOps portfolio — demonstrating Python systems scri
 
 ```
 linux-sysmon-dashboard/
+├── web.py              # Local Web
 ├── monitor.py          # Main agent — collectors, alerts, exporters, UI
 ├── config.yaml         # Thresholds, paths, intervals (edit this)
 ├── sysmon.service      # systemd unit file
@@ -100,7 +105,7 @@ linux-sysmon-dashboard/
 ### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/linux-sysmon-dashboard
+git clone https://github.com/kt-it26/linux-sysmon-dashboard
 cd linux-sysmon-dashboard
 pip3 install -r requirements.txt
 ```
@@ -108,7 +113,7 @@ pip3 install -r requirements.txt
 ### 2. Run the live dashboard
 
 ```bash
-python3 monitor.py
+python3 monitor.py for terminal or web.py run local http://127.0.0.1:5000
 ```
 
 ### 3. Run once and print JSON (useful for testing)
@@ -228,7 +233,7 @@ timestamp,hostname,cpu_percent,memory_percent,swap_percent,disk_root_percent,...
 
 This is Lab 01 of a 15-project DevOps portfolio covering Linux, Python, Terraform, AWS, Docker, Kubernetes and CI/CD.
 
-## Web Dashboard
+## Part of my DevOps portfolio
 
 Install dependencies and run the dashboard: pip3 install flask, then python3 web.py
 

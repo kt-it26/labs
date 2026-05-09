@@ -1,0 +1,28 @@
+# linux-sysmon-dashboard configuration
+# Edit thresholds and paths to match your system
+
+# Poll interval in seconds
+interval: 5
+
+# CPU collection sub-interval (psutil needs a window to measure %)
+cpu_interval: 1.0
+
+# Disk paths to monitor
+disk_paths:
+  - /
+  - /home
+  # - /var
+  # - /tmp
+
+# How many top processes to show
+top_processes: 5
+
+# Max JSON entries kept in memory/file (oldest are dropped)
+max_json_entries: 1000
+
+# Alert thresholds — values in percent
+thresholds:
+  cpu_percent: 85
+  memory_percent: 80
+  swap_percent: 50
+  disk_percent: 80

@@ -1,0 +1,28 @@
+[Unit]
+Description=Linux System Monitor Dashboard
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=nobody
+Group=nobody
+
+# Adjust WorkingDirectory to wherever you cloned the repo
+WorkingDirectory=/opt/linux-sysmon-dashboard
+
+ExecStart=/usr/bin/python3 /opt/linux-sysmon-dashboard/monitor.py --no-display --config /opt/linux-sysmon-dashboard/config.yaml
+
+Restart=on-failure
+RestartSec=10s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sysmon
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

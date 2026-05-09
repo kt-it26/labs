@@ -213,6 +213,7 @@ timestamp,hostname,cpu_percent,memory_percent,swap_percent,disk_root_percent,...
 
 | Skill | Where |
 |---|---|
+| Python systems scripting | `web.py` — real-time local web dashboard |
 | Python systems scripting | `monitor.py` — psutil, signal handling, argparse |
 | Linux service management | `sysmon.service` — systemd unit, security hardening |
 | Observability thinking | Metrics → export → alert → recover cycle |

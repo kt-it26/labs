@@ -1,0 +1,18 @@
+# kt-it26 · lab02-bash-toolkit · example crontab
+# Install with: crontab -e  (then paste what you need)
+# Or system-wide: sudo cp crontab.example /etc/cron.d/devops-toolkit
+
+# ── Log rotation — daily at 2 AM ─────────────────────────────────────────────
+0 2 * * * root bash /opt/lab02-bash-toolkit/scripts/log-rotate.sh /var/log 50 7
+
+# ── Backup home dir — every day at 3 AM ──────────────────────────────────────
+0 3 * * * root bash /opt/lab02-bash-toolkit/scripts/backup.sh /home/user /backup yes
+
+# ── Port health check — every 5 minutes ──────────────────────────────────────
+*/5 * * * * root bash /opt/lab02-bash-toolkit/scripts/port-health.sh localhost 22,80,443 >> /var/log/port-health.log 2>&1
+
+# ── Inventory snapshot — every Sunday at 4 AM ────────────────────────────────
+0 4 * * 0 root cd /opt/lab02-bash-toolkit && python3 -m cli.main inventory --output reports/inventory-$(date +\%Y\%m\%d).json
+
+# ── Full HTML report — every Monday at 6 AM ──────────────────────────────────
+0 6 * * 1 root cd /opt/lab02-bash-toolkit && python3 -m cli.main report --output reports/weekly-report.html

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>netrecon·ai — kt-it26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080b0f;
+  --surface:  #0d1117;
+  --card:     #111820;
+  --border:   #1e2a35;
+  --border2:  #243040;
+  --green:    #00ff88;
+  --green2:   #00cc6a;
+  --green-bg: rgba(0,255,136,0.06);
+  --cyan:     #00d4ff;
+  --silver:   #8899aa;
+  --text:     #c8d8e8;
+  --muted:    #445566;
+  --red:      #ff3355;
+  --orange:   #ff8833;
+  --yellow:   #ffcc00;
+  --mono:     'JetBrains Mono', monospace;
+  --display:  'Syne', sans-serif;
+  --radius:   10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
+
+/* ── Scanline overlay ── */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:1000}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.topbar-left{display:flex;align-items:center;gap:20px}
+.macos-dots{display:flex;gap:6px}
+.dot-btn{width:12px;height:12px;border-radius:50%;cursor:pointer;transition:opacity .15s}
+.dot-btn:hover{opacity:.7}
+.logo{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.logo span:first-child{color:var(--green)}
+.logo span:last-child{color:var(--silver)}
+.logo em{color:var(--cyan);font-style:normal;font-size:11px;margin-left:4px;vertical-align:super}
+.topbar-status{display:flex;align-items:center;gap:16px}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border2)}
+.status-pill.online{border-color:rgba(0,255,136,.3);color:var(--green)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sig{font-size:11px;color:var(--muted)}
+
+/* ── Layout ── */
+.main{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 49px)}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;max-height:calc(100vh - 49px);position:sticky;top:49px}
+
+.panel-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* Scan form */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.field label{font-size:11px;color:var(--silver)}
+.field input,.field select{background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:rgba(0,255,136,.4)}
+.field input::placeholder{color:var(--muted)}
+
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;padding:6px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;transition:all .15s}
+.toggle:hover{border-color:var(--border2)}
+.toggle.on{border-color:rgba(0,255,136,.4);background:var(--green-bg);color:var(--green)}
+.toggle input{display:none}
+.toggle-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.toggle.on .toggle-dot{background:var(--green)}
+
+.scan-btn{width:100%;padding:11px;background:var(--green-bg);border:1px solid rgba(0,255,136,.4);border-radius:8px;color:var(--green);font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.scan-btn:hover{background:rgba(0,255,136,.12);border-color:var(--green)}
+.scan-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Scan history */
+.history-item{padding:8px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer;margin-bottom:6px;transition:all .15s}
+.history-item:hover{border-color:var(--border2);background:var(--card)}
+.history-item.active{border-color:rgba(0,255,136,.4);background:var(--green-bg)}
+.hi-target{font-size:12px;color:var(--text);font-weight:500}
+.hi-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.hi-badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.badge-crit{background:rgba(255,51,85,.15);color:var(--red);border:1px solid rgba(255,51,85,.3)}
+.badge-high{background:rgba(255,136,51,.15);color:var(--orange);border:1px solid rgba(255,136,51,.3)}
+.badge-med{background:rgba(255,204,0,.1);color:var(--yellow);border:1px solid rgba(255,204,0,.25)}
+.badge-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,255,136,.3)}
+.badge-run{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3)}
+
+/* ── Main panel ── */
+.content{padding:24px;overflow-y:auto}
+
+/* Terminal log */
+.terminal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+.terminal-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card)}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.terminal-body{padding:14px;font-size:12px;max-height:200px;overflow-y:auto;line-height:1.8}
+.terminal-body::-webkit-scrollbar{width:4px}
+.terminal-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.log-line{display:flex;gap:10px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.log-time{color:var(--muted);min-width:60px}
+.log-step{min-width:80px}
+.log-step.discovery{color:var(--cyan)}
+.log-step.scanning{color:var(--green)}
+.log-step.cve{color:var(--orange)}
+.log-step.ai{color:#cc88ff}
+.log-step.complete{color:var(--green)}
+.log-step.error{color:var(--red)}
+.log-msg{color:var(--text)}
+
+/* Stats bar */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:0;transition:opacity .3s}
+.stat-card.lit::before{opacity:1}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:300;color:var(--text);letter-spacing:-1px;font-family:var(--display)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* Host cards */
+.hosts-grid{display:flex;flex-direction:column;gap:14px}
+.host-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.host-card:hover{border-color:var(--border2)}
+.host-card.risk-critical{border-left:3px solid var(--red)}
+.host-card.risk-high{border-left:3px solid var(--orange)}
+.host-card.risk-medium{border-left:3px solid var(--yellow)}
+.host-card.risk-low,.host-card.risk-none{border-left:3px solid var(--green)}
+
+.host-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;border-bottom:1px solid transparent;transition:background .15s}
+.host-header:hover{background:rgba(255,255,255,.02)}
+.host-header.open{border-bottom-color:var(--border)}
+.host-ip{font-size:16px;font-weight:500;color:var(--text)}
+.host-hostname{font-size:11px;color:var(--muted);margin-top:2px}
+.host-badges{display:flex;gap:8px;align-items:center}
+.risk-badge{font-size:10px;padding:3px 10px;border-radius:4px;font-weight:500;letter-spacing:.05em}
+.risk-CRITICAL{background:rgba(255,51,85,.15);color:var(--red);border:1px solid rgba(255,51,85,.3)}
+.risk-HIGH{background:rgba(255,136,51,.15);color:var(--orange);border:1px solid rgba(255,136,51,.3)}
+.risk-MEDIUM{background:rgba(255,204,0,.1);color:var(--yellow);border:1px solid rgba(255,204,0,.2)}
+.risk-LOW,.risk-NONE{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.port-count{font-size:11px;color:var(--muted)}
+.chevron{color:var(--muted);font-size:10px;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+
+.host-body{display:none;padding:16px 18px}
+.host-body.open{display:block}
+
+/* Port table */
+.port-table{width:100%;border-collapse:collapse;margin-bottom:16px}
+.port-table th{text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:0 10px 10px 0;font-weight:400}
+.port-table td{padding:8px 10px 8px 0;border-top:1px solid var(--border);font-size:12px;vertical-align:top}
+.pt-port{color:var(--cyan);font-weight:500;min-width:50px}
+.pt-service{color:var(--text)}
+.pt-risk-critical{color:var(--red)}
+.pt-risk-high{color:var(--orange)}
+.pt-risk-medium{color:var(--yellow)}
+.pt-risk-low{color:var(--green)}
+.pt-lat{color:var(--muted)}
+.pt-cve{font-size:10px;color:var(--muted)}
+.cve-pill{display:inline-block;padding:1px 6px;border-radius:3px;margin:1px;font-size:10px;cursor:help}
+.cve-CRITICAL{background:rgba(255,51,85,.15);color:var(--red)}
+.cve-HIGH{background:rgba(255,136,51,.15);color:var(--orange)}
+.cve-MEDIUM{background:rgba(255,204,0,.1);color:var(--yellow)}
+
+/* AI Analysis panel */
+.ai-panel{background:rgba(0,255,136,.03);border:1px solid rgba(0,255,136,.15);border-radius:8px;padding:14px 16px;margin-top:12px}
+.ai-label{font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ai-label::before{content:'◆';font-size:8px}
+.ai-summary{font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px}
+.ai-section{margin-bottom:8px}
+.ai-section-label{font-size:10px;color:var(--muted);margin-bottom:4px}
+.ai-list{list-style:none;display:flex;flex-direction:column;gap:3px}
+.ai-list li{font-size:11px;line-height:1.5;padding-left:12px;position:relative}
+.ai-list li::before{content:'→';position:absolute;left:0;color:var(--green)}
+.ai-list.warn li::before{color:var(--orange);content:'⚠'}
+.ai-nokey{font-size:11px;color:var(--muted);font-style:italic}
+
+/* Network AI */
+.network-ai{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px}
+.net-ai-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.net-ai-title span{color:var(--green)}
+.net-ai-summary{font-size:12px;color:var(--text);line-height:1.8;margin-bottom:12px;padding:10px 12px;background:var(--surface);border-radius:6px;border-left:2px solid var(--green)}
+
+/* Remediation */
+.remed-btn{padding:6px 14px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--silver);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;margin-top:8px}
+.remed-btn:hover{border-color:var(--orange);color:var(--orange)}
+.remed-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center}
+.remed-modal.open{display:flex}
+.remed-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;width:600px;max-height:80vh;display:flex;flex-direction:column}
+.remed-box h3{font-family:var(--display);margin-bottom:12px;color:var(--text)}
+.remed-script{flex:1;overflow-y:auto;background:var(--bg);padding:14px;border-radius:6px;font-size:11px;line-height:1.8;color:var(--green);white-space:pre-wrap;border:1px solid var(--border)}
+.remed-close{margin-top:12px;padding:8px 20px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--silver);cursor:pointer;font-family:var(--mono);font-size:12px}
+.remed-close:hover{border-color:var(--red);color:var(--red)}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--muted);text-align:center;gap:12px}
+.empty-icon{font-size:36px;opacity:.4}
+.empty-title{font-family:var(--display);font-size:16px;font-weight:600;color:var(--silver)}
+.empty-sub{font-size:12px;line-height:1.6;max-width:360px}
+
+/* Loading */
+.loader{display:inline-block;width:10px;height:10px;border:1.5px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="macos-dots">
+      <div class="dot-btn" style="background:#ff5f57"></div>
+      <div class="dot-btn" style="background:#ffbd2e"></div>
+      <div class="dot-btn" style="background:#28c840"></div>
+    </div>
+    <div class="logo"><span>netrecon</span><span>·ai</span><em>v1.0</em></div>
+  </div>
+  <div class="topbar-status">
+    <div class="status-pill online"><div class="status-dot"></div><span id="ai-status">checking...</span></div>
+    <div class="status-pill" id="nmap-pill" style="color:var(--muted)">nmap: —</div>
+  </div>
+  <div class="sig">kt-it26</div>
+</div>
+
+<div class="main">
+
+<!-- Sidebar -->
+<div class="sidebar">
+
+  <div>
+    <div class="panel-label">New Scan</div>
+    <div class="field">
+      <label>Target (IP, hostname or CIDR)</label>
+      <input id="target" type="text" placeholder="192.168.1.1 or 10.0.0.0/24" value="localhost">
+    </div>
+    <div class="field">
+      <label>Ports</label>
+      <input id="ports-input" type="text" placeholder="leave empty for top 24 DevOps ports" value="">
+    </div>
+    <div class="field">
+      <label>Timeout (seconds)</label>
+      <input id="timeout" type="number" value="1.5" min="0.5" max="10" step="0.5">
+    </div>
+    <div class="toggles">
+      <label class="toggle" id="toggle-ai" onclick="toggleOpt(this,'ai')">
+        <input type="checkbox" checked>
+        <span class="toggle-dot"></span> AI analysis
+      </label>
+      <label class="toggle" id="toggle-nmap" onclick="toggleOpt(this,'nmap')">
+        <input type="checkbox">
+        <span class="toggle-dot"></span> Use nmap
+      </label>
+      <label class="toggle" id="toggle-nvd" onclick="toggleOpt(this,'nvd')">
+        <input type="checkbox">
+        <span class="toggle-dot"></span> Live NVD
+      </label>
+    </div>
+    <button class="scan-btn" id="scan-btn" onclick="startScan()">⬡ START SCAN</button>
+  </div>
+
+  <div>
+    <div class="panel-label">Scan History</div>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<!-- Main content -->
+<div class="content">
+
+  <!-- Terminal -->
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="term-dot" style="background:#ff5f57"></div>
+      <div class="term-dot" style="background:#ffbd2e"></div>
+      <div class="term-dot" style="background:#28c840"></div>
+      <span style="font-size:11px;color:var(--muted);margin-left:8px">netrecon-ai · live output</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--muted)" id="ws-status">connecting...</span>
+    </div>
+    <div class="terminal-body" id="terminal">
+      <div class="log-line">
+        <span class="log-time">00:00:00</span>
+        <span class="log-step" style="color:var(--green)">system</span>
+        <span class="log-msg">netrecon-ai ready · kt-it26 · configure target and start scan</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card" id="sc-hosts">
+      <div class="stat-label">Hosts Scanned</div>
+      <div class="stat-value" id="sv-hosts">0</div>
+      <div class="stat-sub">live targets</div>
+    </div>
+    <div class="stat-card" id="sc-ports">
+      <div class="stat-label">Open Ports</div>
+      <div class="stat-value" id="sv-ports">0</div>
+      <div class="stat-sub">services detected</div>
+    </div>
+    <div class="stat-card" id="sc-risk">
+      <div class="stat-label">Critical Hosts</div>
+      <div class="stat-value" id="sv-risk" style="color:var(--red)">0</div>
+      <div class="stat-sub">high/critical risk</div>
+    </div>
+    <div class="stat-card" id="sc-ai">
+      <div class="stat-label">AI Analysis</div>
+      <div class="stat-value" id="sv-ai" style="font-size:14px;padding-top:6px">—</div>
+      <div class="stat-sub" id="sv-ai-sub">—</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">⬡</div>
+      <div class="empty-title">No scan running</div>
+      <div class="empty-sub">Enter a target IP, hostname or CIDR range and click Start Scan. Results appear here in real time.</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Remediation modal -->
+<div class="remed-modal" id="remed-modal">
+  <div class="remed-box">
+    <h3>Remediation Script</h3>
+    <div class="remed-script" id="remed-script">Loading...</div>
+    <button class="remed-close" onclick="closeRemed()">✕ Close</button>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let ws = null;
+let currentScanId = null;
+let opts = { ai: true, nmap: false, nvd: false };
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  connectWS();
+  await loadStatus();
+  await loadHistory();
+}
+
+async function loadStatus() {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    document.getElementById('ai-status').textContent =
+      d.ai_enabled ? 'AI: Claude enabled' : 'AI: rule-based (no key)';
+    const np = document.getElementById('nmap-pill');
+    np.textContent = `nmap: ${d.nmap ? 'available' : 'not found'}`;
+    np.style.color = d.nmap ? 'var(--green)' : 'var(--muted)';
+  } catch(e) {}
+}
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen  = () => {
+    document.getElementById('ws-status').textContent = 'connected';
+    document.getElementById('ws-status').style.color = 'var(--green)';
+  };
+  ws.onclose = () => {
+    document.getElementById('ws-status').textContent = 'disconnected';
+    document.getElementById('ws-status').style.color = 'var(--red)';
+    setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = (e) => handleWS(JSON.parse(e.data));
+}
+
+function handleWS(msg) {
+  const { event } = msg;
+  const t = new Date().toTimeString().slice(0,8);
+
+  if (event === 'scan_started') {
+    addLog(t, 'start', `Scan started — target: ${msg.target}`);
+    showStats();
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('empty-state') && document.getElementById('empty-state').remove();
+  }
+  if (event === 'progress') {
+    addLog(t, msg.step || 'info', msg.msg);
+    if (msg.step === 'discovery' && msg.hosts) {
+      addLog(t, 'discovery', `Hosts found: ${msg.hosts.join(', ')}`);
+    }
+  }
+  if (event === 'host_complete') {
+    renderHost(msg.host);
+    updateStats(msg.host);
+  }
+  if (event === 'scan_complete') {
+    addLog(t, 'complete', `Scan complete — ${msg.stats.hosts_scanned} hosts, ${msg.stats.total_open} open ports`);
+    document.getElementById('scan-btn').disabled = false;
+    document.getElementById('scan-btn').textContent = '⬡ START SCAN';
+    loadHistory();
+    if (currentScanId) loadNetworkAI(currentScanId);
+  }
+  if (event === 'scan_error') {
+    addLog(t, 'error', `Error: ${msg.error}`);
+    document.getElementById('scan-btn').disabled = false;
+  }
+}
+
+// ── Scan ───────────────────────────────────────────────────────────────────
+async function startScan() {
+  const target = document.getElementById('target').value.trim();
+  if (!target) return;
+
+  const portsVal = document.getElementById('ports-input').value.trim();
+  const ports    = portsVal ? portsVal.split(',').map(Number) : null;
+
+  document.getElementById('scan-btn').disabled = true;
+  document.getElementById('scan-btn').innerHTML = '<span class="loader"></span> SCANNING...';
+
+  const body = {
+    target,
+    ports,
+    timeout:  parseFloat(document.getElementById('timeout').value),
+    use_ai:   opts.ai,
+    use_nmap: opts.nmap,
+    use_nvd:  opts.nvd,
+  };
+
+  const r = await fetch('/api/scan', { method: 'POST',
+    headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  currentScanId = d.scan_id;
+}
+
+// ── Render hosts ───────────────────────────────────────────────────────────
+let hostStats = { hosts: 0, ports: 0, critical: 0 };
+
+function updateStats(host) {
+  hostStats.hosts++;
+  hostStats.ports += host.open_count || 0;
+  if (['CRITICAL','HIGH'].includes(host.risk_level)) hostStats.critical++;
+  document.getElementById('sv-hosts').textContent = hostStats.hosts;
+  document.getElementById('sv-ports').textContent = hostStats.ports;
+  document.getElementById('sv-risk').textContent  = hostStats.critical;
+  ['sc-hosts','sc-ports','sc-risk'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.add('lit');
+    setTimeout(()=>el.classList.remove('lit'), 1000);
+  });
+}
+
+function showStats() {
+  hostStats = { hosts: 0, ports: 0, critical: 0 };
+  document.getElementById('stats-row').style.display = 'grid';
+  document.getElementById('sv-ai').textContent = opts.ai ? 'enabled' : 'off';
+  document.getElementById('sv-ai-sub').textContent = opts.ai ? 'Claude Sonnet' : 'rule-based';
+}
+
+function renderHost(h) {
+  const container = document.getElementById('results');
+  const rl = (h.risk_level || 'NONE').toLowerCase();
+  const id = `host-${h.ip.replace(/\./g,'-')}`;
+
+  // Port rows
+  const portRows = (h.open_ports || []).map(p => {
+    const cves = (p.cves || []).slice(0,3).map(c =>
+      `<span class="cve-pill cve-${c.severity}" title="${c.description}">${c.id}</span>`
+    ).join('');
+    const lat = p.latency_ms ? `${p.latency_ms.toFixed(1)}ms` : '—';
+    return `<tr>
+      <td class="pt-port">${p.port}</td>
+      <td class="pt-service">${p.service || '?'}</td>
+      <td class="pt-risk-${p.risk || 'low'}">${p.risk || '?'}</td>
+      <td class="pt-lat">${lat}</td>
+      <td class="pt-cve">${cves || '<span style="color:var(--muted)">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  // AI panel
+  let aiHtml = '';
+  const ai = h.ai_analysis;
+  if (ai) {
+    const src = ai.ai_available ? '◆ Claude AI' : '◇ rule-based';
+    const anomalies = (ai.anomalies || []).map(a=>`<li>${a}</li>`).join('');
+    const recs      = (ai.recommendations || []).map(r=>`<li>${r}</li>`).join('');
+    aiHtml = `
+    <div class="ai-panel">
+      <div class="ai-label">${src}</div>
+      <div class="ai-summary">${ai.summary || ''}</div>
+      ${anomalies ? `<div class="ai-section"><div class="ai-section-label">Anomalies</div><ul class="ai-list warn">${anomalies}</ul></div>` : ''}
+      ${recs ? `<div class="ai-section"><div class="ai-section-label">Recommendations</div><ul class="ai-list">${recs}</ul></div>` : ''}
+    </div>`;
+  }
+
+  const card = document.createElement('div');
+  card.className = `host-card risk-${rl}`;
+  card.id = id;
+  card.innerHTML = `
+    <div class="host-header" onclick="toggleHost('${id}')">
+      <div>
+        <div class="host-ip">${h.ip}</div>
+        <div class="host-hostname">${h.hostname || 'no rDNS'} · ${h.os_hint || h.os || 'OS unknown'}</div>
+      </div>
+      <div class="host-badges">
+        <span class="port-count">${h.open_count || 0} ports open</span>
+        <span class="risk-badge risk-${h.risk_level || 'NONE'}">${h.risk_level || 'NONE'}</span>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+    <div class="host-body" id="body-${id}">
+      <table class="port-table">
+        <thead><tr><th>Port</th><th>Service</th><th>Risk</th><th>Latency</th><th>CVEs</th></tr></thead>
+        <tbody>${portRows || '<tr><td colspan="5" style="color:var(--muted);padding:12px 0">No open ports</td></tr>'}</tbody>
+      </table>
+      ${aiHtml}
+      ${currentScanId ? `<button class="remed-btn" onclick="showRemed('${currentScanId}')">⚡ Generate remediation script</button>` : ''}
+    </div>`;
+  container.appendChild(card);
+  // Auto-open if has findings
+  if ((h.open_count || 0) > 0) toggleHost(id);
+}
+
+function toggleHost(id) {
+  const header = document.querySelector(`#${id} .host-header`);
+  const body   = document.getElementById(`body-${id}`);
+  const chev   = document.querySelector(`#${id} .chevron`);
+  const open   = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+  chev.classList.toggle('open', open);
+}
+
+// ── Network AI ─────────────────────────────────────────────────────────────
+async function loadNetworkAI(scanId) {
+  try {
+    const r = await fetch(`/api/scan/${scanId}`);
+    const d = await r.json();
+    const nai = d.network_ai;
+    if (!nai) return;
+
+    const findings = (nai.key_findings || []).map(f=>`<li>${f}</li>`).join('');
+    const actions  = (nai.priority_actions || []).map(a=>`<li>${a}</li>`).join('');
+    const src = nai.ai_available ? '◆ Claude AI — Network Analysis' : '◇ Rule-based — Network Analysis';
+
+    const panel = document.createElement('div');
+    panel.className = 'network-ai';
+    panel.innerHTML = `
+      <div class="net-ai-title"><span>⬡</span> ${src}</div>
+      <div class="net-ai-summary">${nai.executive_summary || ''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div><div class="panel-label" style="margin-bottom:8px">Key Findings</div><ul class="ai-list warn">${findings}</ul></div>
+        <div><div class="panel-label" style="margin-bottom:8px">Priority Actions</div><ul class="ai-list">${actions}</ul></div>
+      </div>`;
+    document.getElementById('results').insertBefore(panel, document.getElementById('results').firstChild);
+  } catch(e) {}
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/scans');
+    const d = await r.json();
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    for (const s of (d.scans || []).slice(0,10)) {
+      const stats   = s.stats || {};
+      const rl      = stats.critical_hosts > 0 ? 'crit' : stats.total_open > 5 ? 'high' : 'ok';
+      const badgeCls= rl === 'crit' ? 'badge-crit' : rl === 'high' ? 'badge-high' : 'badge-ok';
+      const badge   = s.status === 'running' ? '<span class="hi-badge badge-run">running</span>'
+                    : `<span class="hi-badge ${badgeCls}">${stats.total_open || 0} ports</span>`;
+      const item = document.createElement('div');
+      item.className = `history-item${s.scan_id === currentScanId ? ' active' : ''}`;
+      item.innerHTML = `
+        <div class="hi-target">${s.target}${badge}</div>
+        <div class="hi-meta">${s.scan_id} · ${(s.created_at||'').slice(11,19)}</div>`;
+      item.onclick = () => loadScanResult(s.scan_id);
+      list.appendChild(item);
+    }
+  } catch(e) {}
+}
+
+async function loadScanResult(scanId) {
+  currentScanId = scanId;
+  const r = await fetch(`/api/scan/${scanId}`);
+  const d = await r.json();
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  showStats();
+  for (const h of (d.hosts || [])) {
+    renderHost(h);
+    updateStats(h);
+  }
+  if (d.network_ai) loadNetworkAI(scanId);
+}
+
+// ── Remediation ────────────────────────────────────────────────────────────
+async function showRemed(scanId) {
+  document.getElementById('remed-modal').classList.add('open');
+  document.getElementById('remed-script').textContent = 'Generating remediation script...';
+  try {
+    const r = await fetch(`/api/scan/${scanId}/remediate`, {method:'POST'});
+    const d = await r.json();
+    document.getElementById('remed-script').textContent = d.script;
+  } catch(e) {
+    document.getElementById('remed-script').textContent = `Error: ${e}`;
+  }
+}
+
+function closeRemed() {
+  document.getElementById('remed-modal').classList.remove('open');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function addLog(time, step, msg) {
+  const term = document.getElementById('terminal');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${time}</span><span class="log-step ${step}">${step}</span><span class="log-msg">${msg}</span>`;
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+}
+
+function toggleOpt(el, key) {
+  el.classList.toggle('on');
+  opts[key] = !opts[key];
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+// Init toggles visual state
+document.getElementById('toggle-ai').classList.add('on');
+init();
+</script>
+</body>
+</html>

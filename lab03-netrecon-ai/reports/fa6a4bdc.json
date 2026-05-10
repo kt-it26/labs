@@ -1,0 +1,322 @@
+{
+  "scan_id": "fa6a4bdc",
+  "target": "192.168.1.12",
+  "status": "complete",
+  "created_at": "2026-05-10T13:48:29.414765",
+  "hosts": [
+    {
+      "ip": "192.168.1.12",
+      "hostname": "kt.home",
+      "scanned_at": "2026-05-10T13:48:29.463734",
+      "ports": [
+        {
+          "port": 21,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "FTP",
+          "risk": "medium",
+          "notes": "Unencrypted file transfer"
+        },
+        {
+          "port": 22,
+          "status": "open",
+          "latency_ms": 10.85,
+          "banner": "SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.16\r\nInvalid SSH identification string.",
+          "service": "SSH",
+          "risk": "low",
+          "notes": "Secure shell \u2014 check version",
+          "cves": [
+            {
+              "id": "CVE-2023-38408",
+              "score": 9.8,
+              "severity": "CRITICAL",
+              "description": "Remote code execution in ssh-agent via forwarded agent socket"
+            },
+            {
+              "id": "CVE-2024-6387",
+              "score": 8.1,
+              "severity": "HIGH",
+              "description": "regreSSHion: race condition in signal handler allows unauthenticated RCE"
+            }
+          ],
+          "cve_count": 2,
+          "max_cve_score": 9.8,
+          "has_critical": true
+        },
+        {
+          "port": 23,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Telnet",
+          "risk": "critical",
+          "notes": "Unencrypted \u2014 should be disabled"
+        },
+        {
+          "port": 25,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "SMTP",
+          "risk": "medium",
+          "notes": "Mail server"
+        },
+        {
+          "port": 53,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "DNS",
+          "risk": "low",
+          "notes": "Domain Name System"
+        },
+        {
+          "port": 80,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "HTTP",
+          "risk": "medium",
+          "notes": "Unencrypted web \u2014 prefer HTTPS"
+        },
+        {
+          "port": 110,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "POP3",
+          "risk": "medium",
+          "notes": "Legacy mail retrieval"
+        },
+        {
+          "port": 143,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "IMAP",
+          "risk": "medium",
+          "notes": "Mail access"
+        },
+        {
+          "port": 443,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "HTTPS",
+          "risk": "low",
+          "notes": "Encrypted web"
+        },
+        {
+          "port": 445,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "SMB",
+          "risk": "critical",
+          "notes": "Windows file sharing \u2014 frequent attack vector"
+        },
+        {
+          "port": 1433,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "MSSQL",
+          "risk": "high",
+          "notes": "Microsoft SQL Server"
+        },
+        {
+          "port": 1521,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Oracle DB",
+          "risk": "high",
+          "notes": "Oracle database"
+        },
+        {
+          "port": 2181,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Zookeeper",
+          "risk": "high",
+          "notes": "Should not be internet-exposed"
+        },
+        {
+          "port": 3000,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Node/Grafana",
+          "risk": "medium",
+          "notes": "Dev server or Grafana"
+        },
+        {
+          "port": 3306,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "MySQL",
+          "risk": "high",
+          "notes": "Database \u2014 should be internal only"
+        },
+        {
+          "port": 3389,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "RDP",
+          "risk": "critical",
+          "notes": "Remote Desktop \u2014 brute-force target"
+        },
+        {
+          "port": 5432,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "PostgreSQL",
+          "risk": "high",
+          "notes": "Database \u2014 should be internal only"
+        },
+        {
+          "port": 5601,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Kibana",
+          "risk": "high",
+          "notes": "Should not be internet-exposed"
+        },
+        {
+          "port": 6379,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Redis",
+          "risk": "critical",
+          "notes": "Often unauthenticated \u2014 huge risk if exposed"
+        },
+        {
+          "port": 8080,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "HTTP-alt",
+          "risk": "medium",
+          "notes": "Dev/proxy server"
+        },
+        {
+          "port": 8443,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "HTTPS-alt",
+          "risk": "low",
+          "notes": "Alternate HTTPS"
+        },
+        {
+          "port": 9200,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Elasticsearch",
+          "risk": "critical",
+          "notes": "Often unauthenticated \u2014 data exposure risk"
+        },
+        {
+          "port": 9092,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "Kafka",
+          "risk": "high",
+          "notes": "Message broker \u2014 internal only"
+        },
+        {
+          "port": 27017,
+          "status": "closed",
+          "latency_ms": null,
+          "banner": null,
+          "service": "MongoDB",
+          "risk": "critical",
+          "notes": "Check authentication \u2014 historically exposed"
+        }
+      ],
+      "open_ports": [
+        {
+          "port": 22,
+          "status": "open",
+          "latency_ms": 10.85,
+          "banner": "SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.16\r\nInvalid SSH identification string.",
+          "service": "SSH",
+          "risk": "low",
+          "notes": "Secure shell \u2014 check version",
+          "cves": [
+            {
+              "id": "CVE-2023-38408",
+              "score": 9.8,
+              "severity": "CRITICAL",
+              "description": "Remote code execution in ssh-agent via forwarded agent socket"
+            },
+            {
+              "id": "CVE-2024-6387",
+              "score": 8.1,
+              "severity": "HIGH",
+              "description": "regreSSHion: race condition in signal handler allows unauthenticated RCE"
+            }
+          ],
+          "cve_count": 2,
+          "max_cve_score": 9.8,
+          "has_critical": true
+        }
+      ],
+      "open_count": 1,
+      "risk_score": 1,
+      "risk_level": "LOW",
+      "critical_ports": [],
+      "os_hint": "Linux/Unix (possible)",
+      "ai_analysis": {
+        "summary": "Host has 1 open ports. Risk level: LOW.",
+        "threat_level": "LOW",
+        "anomalies": [],
+        "recommendations": [
+          "Review firewall rules and close unused ports",
+          "Ensure all services are on latest patch level"
+        ],
+        "attack_vectors": [],
+        "ai_available": false
+      }
+    }
+  ],
+  "network_ai": {
+    "executive_summary": "Network scan of 1 hosts revealed 1 open ports. 0 hosts present HIGH or CRITICAL risk. Immediate remediation recommended for flagged hosts.",
+    "key_findings": [
+      "0 high/critical risk hosts detected",
+      "1 total open ports across the network",
+      "Rule-based analysis (set ANTHROPIC_API_KEY for AI analysis)"
+    ],
+    "patterns": [
+      "Multiple database ports exposed",
+      "Legacy protocols detected"
+    ],
+    "priority_actions": [
+      "Audit all critical-risk hosts immediately",
+      "Close unused ports",
+      "Enable firewall rules"
+    ],
+    "compliance_notes": [
+      "Review against CIS Benchmarks",
+      "Check PCI-DSS port requirements"
+    ],
+    "ai_available": false
+  },
+  "completed_at": "2026-05-10T13:48:29.468656",
+  "stats": {
+    "hosts_scanned": 1,
+    "total_open": 1,
+    "critical_hosts": 0,
+    "ports_scanned": 24,
+    "ai_available": false
+  }
+}
